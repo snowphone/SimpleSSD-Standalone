@@ -521,6 +521,7 @@ void Driver::dmaWriteDone() {
     return;
   }
 
+  // mjo: Enter main point
   iter.func(tick, iter.context);
   dmaWriteQueue.pop();
   dmaWritePending = false;
