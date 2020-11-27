@@ -20,6 +20,7 @@
 #include <fstream>
 #include <iostream>
 #include <thread>
+#include <filesystem>
 
 #include "bil/entry.hh"
 #include "igl/request/request_generator.hh"
@@ -30,6 +31,8 @@
 #include "sim/signal.hh"
 #include "simplessd/util/simplessd.hh"
 #include "util/print.hh"
+
+namespace fs = std::filesystem;
 
 // Global objects
 Engine engine;
@@ -64,6 +67,14 @@ void joinPath(std::string &lhs, std::string &rhs) {
   else {
     lhs += '/';
     lhs += rhs;
+  }
+}
+
+void CreatePathIfNotExists(std::string path) {
+  fs::path p(path);
+  fprintf(stderr, "Parent path: %s\n", p.parent_path().c_str());
+  if (!fs::is_directory(p.parent_path()) || !fs::exists(p.parent_path())) {
+    fs::create_directories(p.parent_path());
   }
 }
 
@@ -111,6 +122,7 @@ int main(int argc, char *argv[]) {
     std::string full(argv[3]);
 
     joinPath(full, logPath);
+    CreatePathIfNotExists(full);
     logOut.open(full);
 
     if (!logOut.is_open()) {
@@ -134,6 +146,7 @@ int main(int argc, char *argv[]) {
     std::string full(argv[3]);
 
     joinPath(full, debugLogPath);
+    CreatePathIfNotExists(full);
     debugLogOut.open(full);
 
     if (!debugLogOut.is_open()) {
@@ -149,6 +162,7 @@ int main(int argc, char *argv[]) {
     std::string full(argv[3]);
 
     joinPath(full, latencyLogPath);
+    CreatePathIfNotExists(full);
     latencyFile.open(full);
 
     if (!latencyFile.is_open()) {
