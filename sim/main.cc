@@ -17,10 +17,11 @@
  * along with SimpleSSD.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <filesystem>
 #include <fstream>
 #include <iostream>
+#include <memory>
 #include <thread>
-#include <filesystem>
 
 #include "bil/entry.hh"
 #include "igl/request/request_generator.hh"
@@ -43,6 +44,7 @@ IGL::IOGenerator *pIOGen = nullptr;
 std::ostream *pLog = nullptr;
 std::ostream *pDebugLog = nullptr;
 std::ostream *pLatencyFile = nullptr;
+unique_ptr<std::ofstream> pStatisticsFile;
 std::thread *pThread = nullptr;
 std::mutex killLock;
 SimpleSSD::Event statEvent;
@@ -109,6 +111,7 @@ int main(int argc, char *argv[]) {
       simConfig.readString(CONFIG_GLOBAL, GLOBAL_DEBUG_LOG_FILE);
   std::string latencyLogPath =
       simConfig.readString(CONFIG_GLOBAL, GLOBAL_LATENCY_LOG_FILE);
+  std::string statisticsLogPath = "stats.txt";
 
   if (logPath.compare("STDOUT") == 0) {
     noLogPrintOnScreen = false;
@@ -172,6 +175,20 @@ int main(int argc, char *argv[]) {
     }
 
     pLatencyFile = &latencyFile;
+  }
+
+  if (statisticsLogPath.length() != 0) {
+    std::string full(argv[3]);
+
+    joinPath(full, statisticsLogPath);
+    CreatePathIfNotExists(full);
+    pStatisticsFile = make_unique<std::ofstream>(full);
+
+    if (!pStatisticsFile->is_open()) {
+      std::cerr << " Failed to open statistics file: " << full << std::endl;
+
+      return 3;
+    }
   }
 
   // Initialize SimpleSSD
@@ -296,6 +313,10 @@ void cleanup(int) {
 
   pIOGen->printStats(std::cout);
   engine.printStats(std::cout);
+  if (pStatisticsFile.get()) {
+    pIOGen->printStats(*pStatisticsFile);
+    engine.printStats(*pStatisticsFile);
+  }
 
   // Cleanup all here
   delete pInterface;
