@@ -298,8 +298,9 @@ void TraceReplayer::handleNextLine() {
   }
 
   // Get time
-  uint64_t tick = mergeTime(match);
+  const uint64_t tick = mergeTime(match);
 
+  // mjo: Firstly initialize the variable
   if (firstTick == std::numeric_limits<uint64_t>::max()) {
     if (mode == MODE_STRICT) {
       firstTick = tick;  // Only used by MODE_STRICT

@@ -580,6 +580,7 @@ void Driver::updateInterrupt(uint16_t iv, bool post) {
         for (auto iter = pendingCommandList.begin();
              iter != pendingCommandList.end(); iter++) {
           if (iter->iv == iv && iter->cid == (cqdata[3] & 0xFFFF)) {
+            // mjo: Callback function frees PRP memory
             iter->callback((uint16_t)(cqdata[3] >> 17), cqdata[0],
                            iter->context);
 

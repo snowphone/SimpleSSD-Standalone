@@ -118,6 +118,9 @@ SimpleSSD::Event Engine::allocateEvent(SimpleSSD::EventFunction func) {
   return counter;
 }
 
+// mjo: Insert cached event into event queue, I guess.
+// eid: unique key to get a funciton. Actually eventList
+// is a map, so uniqueness is guaranteed.
 void Engine::scheduleEvent(SimpleSSD::Event eid, uint64_t tick) {
   auto iter = eventList.find(eid);
 
@@ -137,7 +140,7 @@ void Engine::scheduleEvent(SimpleSSD::Event eid, uint64_t tick) {
       tick = tickCopy;
     }
 
-    uint64_t oldTick;
+    uint64_t oldTick = 0;
 
     if (insertEvent(eid, tick, &oldTick)) {
       SimpleSSD::warn("Event %" PRIu64 " rescheduled from %" PRIu64

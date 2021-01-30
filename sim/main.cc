@@ -250,12 +250,13 @@ int main(int argc, char *argv[]) {
 
     pInterface->getInfo(bytesize, bs);
     pIOGen->init(bytesize, bs);
-    pIOGen->begin();
+    pIOGen->begin(); // mjo: Reads a trace file
   };
 
   // Insert stat event
   pInterface->initStats(statList);
 
+  // mjo: Log statistics periodically
   if (simConfig.readUint(CONFIG_GLOBAL, GLOBAL_LOG_PERIOD) > 0) {
     statEvent = engine.allocateEvent([](uint64_t tick) {
       statistics(tick);
@@ -273,6 +274,12 @@ int main(int argc, char *argv[]) {
   // Do Simulation
   std::cout << "********** Begin of simulation **********" << std::endl;
 
+  // mjo: Register a callback which runs traces
+  // arrow means registering a function to an event queue.
+  // init -> init0 -> init1 -> init2 -> init3 -> init4 -> init5
+  // Finally init5 directly calls beginFunction, same to beginCallBack on above.
+  // Since beginCallBack invokes TraceReplayer::begin, TraceReplayer::submitIO, TraceReplayer::handleNextLine sequentially.
+  // In other words, it firstly registers a code to invoke TraceReplayer::submitIO.
   pInterface->init(beginCallback);
 
   if (noLogPrintOnScreen) {
@@ -282,6 +289,12 @@ int main(int argc, char *argv[]) {
       pThread = new std::thread(threadFunc, period);
     }
   }
+
+  // ##### How does it repeatedly read traces? #####
+  //
+  // As I mentioned above, pInterface->init sets TraceReplayer::submitIO.
+  // handleNextLine, invoked by submitIO, invokes engine.scheduleEvent and it inserts submitIO job to the queue.
+
 
   while (engine.doNextEvent())
     ;
