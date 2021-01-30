@@ -1,0 +1,4 @@
+#!/bin/bash
+
+cmake -DDEBUG_BUILD=off -DCMAKE_EXPORT_COMPILE_COMMANDS=ON .
+
