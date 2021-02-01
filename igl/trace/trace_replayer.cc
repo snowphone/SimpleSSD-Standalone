@@ -19,6 +19,8 @@
 
 #include "igl/trace/trace_replayer.hh"
 
+#include <utility>
+
 #include "simplessd/sim/trace.hh"
 #include "simplessd/util/algorithm.hh"
 
@@ -361,7 +363,23 @@ void TraceReplayer::handleNextLine() {
   io_depth++;
 
   if (mode == MODE_STRICT) {
-    engine.scheduleEvent(submitEvent, tick - firstTick + initTime);
+    if (io_depth == maxQueueDepth) {
+      if (!pBackup) {
+        pBackup = std::make_unique<backup_t>(submitEvent,
+                                             tick - firstTick + initTime);
+      }
+      else {
+        SimpleSSD::panic("pBackup cannot be overriden since This is a "
+                         "single-threaded program!");
+      }
+    }
+    else if (io_depth > maxQueueDepth) {
+      SimpleSSD::panic("io_depth cannot be bigger than maxQueueDepth since "
+                       "This is a single-threaded program!");
+    }
+    else {
+      engine.scheduleEvent(submitEvent, tick - firstTick + initTime);
+    }
   }
 
   bioEntry.submitIO(bio);
@@ -383,6 +401,16 @@ void TraceReplayer::iocallback(uint64_t) {
     if (io_depth == 0) {
       endCallback();
     }
+  }
+
+  // mjo: restore
+  // pBackup is another flow-control flag since at the beginning of the program
+  // it consumes the event queue too fast.
+  if (mode == MODE_STRICT && !io_depth && pBackup) {
+    auto submitEvent = pBackup->first;
+    auto tick = pBackup->second;
+    pBackup.reset(nullptr);
+    engine.scheduleEvent(submitEvent, tick);
   }
 
   if (mode == MODE_SYNC || nextIOIsSync) {

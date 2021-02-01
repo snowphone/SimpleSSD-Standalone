@@ -37,6 +37,9 @@ namespace IGL {
 
 class TraceReplayer : public IOGenerator {
  private:
+	 using backup_t = std::pair<SimpleSSD::Event, uint64_t>;
+	 std::unique_ptr<backup_t> pBackup = nullptr;
+
   enum {
     ID_OPERATION,
     ID_BYTE_OFFSET,
