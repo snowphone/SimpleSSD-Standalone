@@ -40,3 +40,8 @@ compile_flags.txt
 # VSCode Specific
 .vscode/
 *.code-workspace
+
+## callgrind and massif
+**/callgrind.out.*
+**/massif.out.*
+**/valgrind.*
