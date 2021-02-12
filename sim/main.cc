@@ -74,7 +74,6 @@ void joinPath(std::string &lhs, std::string &rhs) {
 
 void CreatePathIfNotExists(std::string path) {
   fs::path p(path);
-  fprintf(stderr, "Parent path: %s\n", p.parent_path().c_str());
   if (!fs::is_directory(p.parent_path()) || !fs::exists(p.parent_path())) {
     fs::create_directories(p.parent_path());
   }
