@@ -81,6 +81,10 @@ void CreatePathIfNotExists(std::string path) {
 
 int main(int argc, char *argv[]) {
   std::cout << "SimpleSSD Standalone v2.0" << std::endl;
+  std::cout << "Input: ";
+  for (int i = 0; i < argc; ++i) {
+	  std::cout << argv[i] << " \n"[i + 1 == argc];
+  }
 
   // Check argument
   if (argc != 4) {
