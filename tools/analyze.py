@@ -1,9 +1,19 @@
 #!/usr/bin/env python3.8
 
+from dataclasses import asdict, dataclass
 from json import dump
+import os
+from pathlib import Path
 import re
 from sys import argv
-from typing import IO, List, Union
+from typing import Dict, IO, List, Union
+
+@dataclass(order=True)
+class Record:
+	name: str
+	traceConfig: str
+	ssdConfig: str
+	statistics: List[Dict[str, float]]
 
 def main(argv: List[str]):
 	for arg in argv[1:]:
@@ -12,25 +22,33 @@ def main(argv: List[str]):
 
 def analyze(path: str):
 	f = open(path, "rt")
-	logs = []
+
+	p = Path(path)
+	ssdConfig = p.parents[0].name
+	traceConfig = p.parents[1].name
+	name = p.parents[2].name
+
+	stat = Record(name, traceConfig, ssdConfig, [])
 	while token := tokenize(f):
-		logs.append(token)
+		stat.statistics.append(token)
 	f.close()
 
-	def saveJson():
-		dstPath = path.replace(".txt", ".json")
-		with open(dstPath, "wt") as dst:
-			dump(logs, dst, indent=2)
-	def saveCsv():
-		dstPath = path.replace(".txt", ".csv")
-		with open(dstPath, "wt") as dst:
-			dst.writelines(
-					[",".join(logs[0].keys()) + '\n'] + 
-					[",".join(map(str, i.values())) + '\n' for i in logs]
-					)
 
-	saveJson()
-	saveCsv()
+	saveJson(stat, path.replace(".txt", ".json"))
+	saveCsv(stat, path.replace(".txt", ".csv"))
+
+def saveJson(stat: Record, dstPath: str):
+	with open(dstPath, "wt") as dst:
+		dump(asdict(stat), dst, indent=2)
+
+def saveCsv(stat: Record, dstPath: str, saveHeader=True):
+	if saveHeader:
+		data = [",".join(["name", "trace", "SSD", *stat.statistics[0].keys()]) + '\n'] + \
+			[",".join([stat.name, stat.traceConfig, stat.ssdConfig, *map(str, i.values())]) + '\n' for i in stat.statistics]
+	else:
+		data = [",".join([stat.name, stat.traceConfig, stat.ssdConfig, *map(str, i.values())]) + '\n' for i in stat.statistics]
+	with open(dstPath, "wt") as dst:
+		dst.writelines(data)
 
 def tokenize(f: IO) -> Union[dict, None]: 
 	beginPattern = re.compile(r"Periodic log printout @ tick (\d+)")
