@@ -30,7 +30,8 @@ def sample(srcPath: str, dstPath: str, size=200 * MB):
 
 	for line in islice(src, beg):
 		dst.write(line)
-		acc += int(line.split()[3])
+		if line.find("W") != -1:
+			acc += int(line.split()[3])
 		if acc >= size:
 			break
 
