@@ -18,21 +18,23 @@ def getLineCount(path: str) -> int:
 	return int(subprocess.getoutput(f"wc -l {path}").split()[0])
 
 
-def sample(srcPath: str, dstPath: str, size=200 * MB):
+def sample(srcPath: str, dstPath: str, size=8 * GB, minLine=80000):
 	size //= 512 # unit: byte -> LBA
 	src = tqdm(open(srcPath, "rt"))
 	dst = open(dstPath, "wt")
 
 	lines = getLineCount(path)
 
+	lineCnt = 0
 	acc = 0
 	beg = lines // 2
 
 	for line in islice(src, beg):
+		lineCnt += 1
 		dst.write(line)
 		if line.find("W") != -1:
 			acc += int(line.split()[3])
-		if acc >= size:
+		if acc >= size and lineCnt >= minLine:
 			break
 
 	src.close()
@@ -40,4 +42,4 @@ def sample(srcPath: str, dstPath: str, size=200 * MB):
 
 
 for path in tqdm(argv[1:]):
-	sample(path, path.replace(".trace", "_sampled.trace"))
+	sample(path, path.replace(".trace", "_8GB.trace"))
