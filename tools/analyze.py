@@ -7,15 +7,16 @@ import re
 from sys import argv
 from typing import IO, List, Union
 
+from tqdm import tqdm
+
 try:
 	from .Record import Record
 except:
 	from Record import Record
 
 def main(argv: List[str]):
-	for arg in argv[1:]:
+	for arg in tqdm(argv[1:]):
 		analyze(arg)
-		print(arg)
 
 def analyze(path: str):
 	f = open(path, "rt")
