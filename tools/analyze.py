@@ -1,7 +1,5 @@
 #!/usr/bin/env python3.8
 
-from dataclasses import asdict
-from json import dump
 from pathlib import Path
 import re
 from sys import argv
@@ -10,9 +8,9 @@ from typing import IO, List, Union
 from tqdm import tqdm
 
 try:
-	from .Record import Record
+	from .Record import Record, saveCsv, saveJson
 except:
-	from Record import Record
+	from Record import Record, saveCsv, saveJson
 
 def main(argv: List[str]):
 	for arg in tqdm(argv[1:]):
@@ -53,19 +51,6 @@ def getLatency(path: str) -> float:
 	return time * toMilli[unit] # final unit: milliseconds
 
 
-
-def saveJson(stat: Record, dstPath: str):
-	with open(dstPath, "wt") as dst:
-		dump(asdict(stat), dst, indent=2)
-
-def saveCsv(stat: Record, dstPath: str, saveHeader=True):
-	if saveHeader:
-		data = [",".join(["name", "trace", "SSD", "latency", *stat.statistics[0].keys()]) + '\n'] + \
-			[",".join([stat.name, stat.traceConfig, stat.ssdConfig, str(stat.latency), *map(str, i.values())]) + '\n' for i in stat.statistics]
-	else:
-		data = [",".join([stat.name, stat.traceConfig, stat.ssdConfig, str(stat.latency), *map(str, i.values())]) + '\n' for i in stat.statistics]
-	with open(dstPath, "wt") as dst:
-		dst.writelines(data)
 
 def tokenize(f: IO) -> Union[dict, None]: 
 	beginPattern = re.compile(r"Periodic log printout @ tick (\d+)")

@@ -1,7 +1,9 @@
 #!/usr/bin/env python3.8
 
 from glob import glob
+from itertools import groupby
 from json import load
+from statistics import mean
 from sys import argv
 from typing import List, Tuple
 
@@ -12,22 +14,23 @@ except:
 
 
 def main(argv: List[str]):
-	print(
-	    "Characteristics,Trace,SSD config,Incr Thruput,Decr'd # GC,Decr'd Reclm'd blocks,Decr'd Pg copies"
-	)
+	results: List[Record] = []
 	for traceLevelPath in argv[1:]:
-		normalize(traceLevelPath)
+		results.extend(normalize(traceLevelPath))
+	results = calculateAverages(results)
+	printRecords(results)
 
 
 def normalize(path: str):
 	stats = readRecords(path)
 	pairList = sorted(makeThemPair(stats))
 
-	for base, opt in pairList:
-		values = [base.name, base.traceConfig, base.ssdConfig]
+	results = []
 
-		normalizedThroughput = f"{(base.latency - opt.latency) / opt.latency * 100:.1f}%"
-		values.append(normalizedThroughput)
+	for base, opt in pairList:
+		rec = Record(base.name, base.traceConfig, base.ssdConfig, 0, [{}])
+
+		rec.latency = opt.latency / base.latency
 
 		baseLastStat = max(base.statistics, key=lambda x: x["host_time"])
 		optLastStat = max(opt.statistics, key=lambda x: x["host_time"])
@@ -40,12 +43,42 @@ def normalize(path: str):
 			baseValue, optValue = map(lambda x: x[key],
 			                          [baseLastStat, optLastStat])
 			try:
-				normalized = f"{(baseValue - optValue) / baseValue * 100:.1f}%"
+				normalized = optValue / baseValue
 			except:
-				normalized = "NaN"
-			values.append(normalized)
+				normalized = float("nan")
+			rec.statistics[0][key] = normalized
+		results.append(rec)
 
-		print(",".join(values))
+	return results
+
+
+def calculateAverages(records: List[Record]):
+	keyFunc = lambda x: (x.name, x.ssdConfig)
+	avgs = []
+	for (name, ssd), group in groupby(sorted(records, key=keyFunc),
+	                                  key=keyFunc):
+		group = list(group)
+		avg = Record(name, f"average", ssd, 0, [{}])
+		avg.latency = mean(i.latency for i in group)
+		for key in records[0].statistics[0].keys():
+			avg.statistics[0][key] = mean(i.statistics[0][key] for i in group)
+
+		avgs.append(avg)
+	return sorted(records + avgs)
+
+
+def printRecords(records: List[Record]):
+	keys = [
+	    "Characteristics", "trace", "SSD", "latency", "GC", "reclaimed blocks",
+	    "page copies"
+	]
+	print(",".join(keys))
+	for rec in records:
+		values = [rec.name, rec.traceConfig, rec.ssdConfig, rec.latency]
+		for v in rec.statistics[0].values():
+			values.append(v)
+		print(",".join(
+		    [v if isinstance(v, str) else f"{v:.3f}" for v in values]))
 
 
 def makeThemPair(stats: List[Record]) -> List[Tuple[Record, Record]]:
@@ -56,8 +89,8 @@ def makeThemPair(stats: List[Record]) -> List[Tuple[Record, Record]]:
 	  for it in baselineList
 	  for jt in optimizedList
 	            if it.name == jt.name and \
-              it.traceConfig == jt.traceConfig and \
-             it.ssdConfig == jt.ssdConfig.replace("_optimized", "")]
+                    it.traceConfig == jt.traceConfig and \
+                   it.ssdConfig == jt.ssdConfig.replace("_optimized", "")]
 
 
 def readRecords(path: str) -> List[Record]:
