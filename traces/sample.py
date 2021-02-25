@@ -18,21 +18,29 @@ def getLineCount(path: str) -> int:
 	return int(subprocess.getoutput(f"wc -l {path}").split()[0])
 
 
-def sample(srcPath: str, dstPath: str, size=512 * MiB, minLine=10000):
+whitelist = ["ycsb"]
+
+def sample(srcPath: str, dstPath: str, size=8 * GB, minLine=1000, acceleration=10):
 	size //= 512 # unit: byte -> LBA
 	src = tqdm(open(srcPath, "rt"))
 	dst = open(dstPath, "wt")
 
-	lines = getLineCount(path)
+	lines = getLineCount(srcPath)
 
 	lineCnt = 0
 	acc = 0
 	beg = lines // 2
 
+	# If current item is in whitelist, then disable acceleration
+	if next((it for it in whitelist if srcPath.find(it) != -1), False):
+		acceleration = 1
+
 	for line in islice(src, beg):
 		lineCnt += 1
-		dst.write(line)
-		if line.find("W") != -1:
+		time, _, slba, nlb, op = line.split()
+		time = str(int(time) // acceleration)
+		dst.write(" ".join([time, "0", slba, nlb, op]) + '\n')
+		if op.find("W") != -1:
 			acc += int(line.split()[3])
 		if acc >= size and lineCnt >= minLine:
 			break
