@@ -10,12 +10,13 @@ class Record:
 	name: str
 	traceConfig: str
 	ssdConfig: str
+	scheme: str
 	latency: float
 	statistics: List[Dict[str, float]]
 
 	def __hash__(self) -> int:
 		return "".join([self.name, self.traceConfig,
-		                self.ssdConfig]).__hash__()
+		                self.ssdConfig, self.scheme]).__hash__()
 
 
 def saveJson(stat: Record, dstPath: str):
@@ -25,12 +26,12 @@ def saveJson(stat: Record, dstPath: str):
 
 def saveCsv(stat: Record, dstPath: str, saveHeader=True):
 	if saveHeader:
-		data = [",".join(["name", "trace", "SSD", "latency", *stat.statistics[0].keys()]) + '\n'] + \
-				[",".join([stat.name, stat.traceConfig, stat.ssdConfig, str(stat.latency), *map(str, i.values())]) + '\n' for i in stat.statistics]
+		data = [",".join(["name", "trace", "SSD", "scheme", "latency", *stat.statistics[0].keys()]) + '\n'] + \
+				[",".join([stat.name, stat.traceConfig, stat.ssdConfig, stat.scheme, str(stat.latency), *map(str, i.values())]) + '\n' for i in stat.statistics]
 	else:
 		data = [
 		    ",".join([
-		        stat.name, stat.traceConfig, stat.ssdConfig,
+		        stat.name, stat.traceConfig, stat.ssdConfig, stat.scheme,
 		        str(stat.latency), *map(str, i.values())
 		    ]) + '\n' for i in stat.statistics
 		]

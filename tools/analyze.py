@@ -24,12 +24,13 @@ def analyze(path: str):
 	f = open(path, "rt")
 
 	p = Path(path)
-	ssdConfig = p.parents[0].name
+	scheme = "baseline" if p.parents[0].name.find("optimized") == -1 else "proposal"
+	ssdConfig = p.parents[0].name.replace("_optimized", "")
 	traceConfig = p.parents[1].name
 	name = p.parents[2].name
 	latency = getLatency(path)
 
-	stat = Record(name, traceConfig, ssdConfig, latency, [])
+	stat = Record(name, traceConfig, ssdConfig, scheme, latency, [])
 	while token := tokenize(f):
 		stat.statistics.append(token)
 	f.close()
