@@ -1,5 +1,6 @@
 #!/usr/bin/env python3.8
 
+from glob import glob
 from pathlib import Path
 import re
 from sys import argv
@@ -13,7 +14,10 @@ except:
 	from Record import Record, saveCsv, saveJson
 
 def main(argv: List[str]):
-	for arg in tqdm(argv[1:]):
+	paths = []
+	for path in argv[1:]:
+		paths.extend(glob(f"{path}/**/log.txt", recursive=True))
+	for arg in tqdm(paths):
 		analyze(arg)
 
 def analyze(path: str):
