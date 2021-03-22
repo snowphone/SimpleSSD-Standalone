@@ -426,11 +426,22 @@ void Driver::_io(uint16_t status, void *context) {
 
 void Driver::initStats(std::vector<SimpleSSD::Stats> &list) {
   pController->getStatList(list, "");
+
+  using S = SimpleSSD::Stats;
+  list.push_back(S {"latency", "latency (us)"});
+  list.push_back(S {"bandwidth", "bandwidth (MB/s)"});
+
   SimpleSSD::getCPUStatList(list, "cpu");
 }
 
 void Driver::getStats(std::vector<double> &values) {
   pController->getStatValues(values);
+  BIL::Progress data;
+  pBio->getProgress(data);
+
+  values.push_back(data.latency / 1000000.);
+  values.push_back(data.bandwidth / 1000000.);
+
   SimpleSSD::getCPUStatValues(values);
 }
 

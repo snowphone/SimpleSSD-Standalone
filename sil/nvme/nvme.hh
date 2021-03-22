@@ -133,6 +133,8 @@ class Driver : public BIL::DriverInterface, SimpleSSD::HIL::NVMe::Interface {
   Driver(Engine &, SimpleSSD::ConfigReader &);
   ~Driver();
 
+  BIL::BlockIOEntry* pBio = nullptr;
+
   // BIL::DriverInterface
   void init(std::function<void()> &) override;
   void getInfo(uint64_t &, uint32_t &) override;

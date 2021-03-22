@@ -196,6 +196,7 @@ int main(int argc, char *argv[]) {
 
   // Initialize SimpleSSD
   auto ssdConfig = initSimpleSSDEngine(&engine, pDebugLog, pDebugLog, argv[2]);
+  SIL::NVMe::Driver* nvme_driver = nullptr;
 
   // Create Driver
   switch (simConfig.readUint(CONFIG_GLOBAL, GLOBAL_INTERFACE)) {
@@ -204,7 +205,8 @@ int main(int argc, char *argv[]) {
 
       break;
     case INTERFACE_NVME:
-      pInterface = new SIL::NVMe::Driver(engine, ssdConfig);
+	  nvme_driver = new SIL::NVMe::Driver(engine, ssdConfig);
+      pInterface = nvme_driver;
 
       break;
     default:
@@ -216,6 +218,8 @@ int main(int argc, char *argv[]) {
   // Create Block I/O Layer
   pBIOEntry =
       new BIL::BlockIOEntry(simConfig, engine, pInterface, pLatencyFile);
+  if(nvme_driver)
+	  nvme_driver->pBio = pBIOEntry;
 
   std::function<void()> endCallback = []() {
     // If stat printout is scheduled, delete it
@@ -395,7 +399,7 @@ void threadFunc(int tick) {
   uint64_t old = 0;
   float progress;
   auto duration = std::chrono::seconds(tick);
-  BIL::Progress data;
+  //BIL::Progress data;
 
   while (true) {
     std::this_thread::sleep_for(duration);
@@ -409,12 +413,10 @@ void threadFunc(int tick) {
 
     engine.getStat(current);
     pIOGen->getProgress(progress);
-    pBIOEntry->getProgress(data);
+    //pBIOEntry->getProgress(data);
 
-    printf("\33[2K*** Progress: %.2f%% (%lf ops) IOPS: %" PRIu64 " BW: %" PRIu64
-           " B/s Avg. Lat: %" PRIu64 " ps\r",
-           progress * 100.f, (double)(current - old) / tick, data.iops,
-           data.bandwidth, data.latency);
+    printf("\33[2K*** Progress: %.2f%% (%lf ops)\r",
+           progress * 100.f, (double)(current - old) / tick);
     fflush(stdout);
 
     old = current;
