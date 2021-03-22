@@ -6,7 +6,7 @@ from json import load
 from math import isnan
 from statistics import mean
 from sys import argv
-from typing import List, Tuple
+from typing import Dict, List, Tuple
 
 try:
 	from .Record import Record
@@ -15,15 +15,13 @@ except:
 
 
 def main(argv: List[str]):
-	results: List[Record] = []
-	for traceLevelPath in argv[1:]:
-		results.extend(normalize(traceLevelPath))
+	results = normalize(argv[1:])
 	results = calculateAverages(results)
 	printRecords(results)
 
 
-def normalize(path: str):
-	stats = readRecords(path)
+def normalize(paths: List[str]) -> List[Record]:
+	stats = readRecords(paths)
 	pairList = sorted(makeThemPair(stats))
 
 	results = []
@@ -37,9 +35,6 @@ def normalize(path: str):
 		optLastStat = max(opt.statistics, key=lambda x: x["host_time"])
 
 		for key in [
-		    "ftl.page_mapping.gc.count",
-		    "ftl.page_mapping.gc.reclaimed_blocks",
-		    "ftl.page_mapping.gc.page_copies",
 			"cum_bandwidth",
 		]:
 			baseValue, optValue = map(lambda x: x[key],
@@ -49,9 +44,21 @@ def normalize(path: str):
 			except:
 				normalized = float("nan")
 			rec.statistics[0][key] = normalized
+		
+		rec.statistics[0]["WA"] = WA(optLastStat) / WA(baseLastStat)
+
 		results.append(rec)
 
 	return results
+
+def WA(stat: Dict[str, float]) -> float:
+	'''
+	Actual writes / host writes
+	'''
+	sz = stat["write.bytes"]
+	page_sz = 16384
+	pages = stat["ftl.page_mapping.gc.page_copies"]
+	return (sz + page_sz * pages) / sz
 
 
 def calculateAverages(records: List[Record]):
@@ -72,8 +79,7 @@ def calculateAverages(records: List[Record]):
 
 def printRecords(records: List[Record]):
 	keys = [
-	    "Characteristics", "trace", "SSD", "latency", "GC", "reclaimed blocks",
-	    "page copies", "cum_bandwidth",
+	    "Characteristics", "trace", "SSD", "latency", "bandwidth", "WA"
 	]
 	print(",".join(keys))
 	for rec in records:
@@ -96,11 +102,13 @@ def makeThemPair(stats: List[Record]) -> List[Tuple[Record, Record]]:
                    it.ssdConfig == jt.ssdConfig]
 
 
-def readRecords(path: str) -> List[Record]:
-	pathList = glob(f"{path}/**/log.json", recursive=True)
-	stats = [
+def readRecords(paths: List[str]) -> List[Record]:
+	stats = []
+	for path in paths:
+		pathList = glob(f"{path}/**/log.json", recursive=True)
+		stats.extend([
 	    Record(**it) for it in map(lambda x: load(open(x, "rt")), pathList)
-	]
+	])
 	return stats
 
 
