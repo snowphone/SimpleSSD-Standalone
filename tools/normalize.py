@@ -74,7 +74,7 @@ def calculateAverages(records: List[Record]):
 			avg.statistics[0][key] = mean(values)
 
 		avgs.append(avg)
-	return sorted(records + avgs)
+	return sorted(records) + avgs
 
 
 def printRecords(records: List[Record]):

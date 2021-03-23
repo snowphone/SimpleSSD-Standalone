@@ -68,13 +68,13 @@ def tokenize(f: IO) -> Union[dict, None]:
 	while True:
 		line = f.readline()
 		if mat := beginPattern.search(line):
-			periodStats["host_time"] = int(mat.group(1)) // 1_000_000_000_000 # unit: seconds
+			periodStats["host_time"] = int(mat.group(1)) / 1_000_000_000_000 # unit: seconds
 		elif mat:= statPattern.search(line):
 			periodStats[mat.group(1)] = float(mat.group(2))
 			if mat.group(1) == "bytes":
 				# Calculate instantaneous bandwidth
 				bytes = (periodStats["bytes"] - soFarBytes)
-				time = (periodStats["host_time"] - soFarTime)
+				time = float(periodStats["host_time"] - soFarTime)
 				periodStats["bandwidth"] = bytes / time / 1000_000 # unit: MB/s
 				periodStats["cum_bandwidth"] = periodStats["bytes"] / periodStats["host_time"] / 1000_000 # unit: MB/s
 
