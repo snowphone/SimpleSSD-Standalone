@@ -45,3 +45,9 @@ compile_flags.txt
 **/callgrind.out.*
 **/massif.out.*
 **/valgrind.*
+
+## pythone
+**/__pycache__
+
+## clangd
+**/.cache
