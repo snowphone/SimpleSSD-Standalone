@@ -1,10 +1,14 @@
-folder=results/withAlibaba_12GB
+folder=results/BER
 parallel --eta --tmuxpane \
 	time ./simplessd-standalone {1} {2} "$folder"/{1/.}/{2/.} \
 	::: config/alibaba_sampled.cfg \
 		config/exchange_sampled.cfg \
 		config/msnfs_sampled.cfg \
 		config/ycsb_sampled.cfg \
-	::: simplessd/config/full_0.12_30.cfg simplessd/config/full_0.12_optimized_30.cfg \
-		simplessd/config/full_0.25_30.cfg simplessd/config/full_0.25_optimized_30.cfg \
-		simplessd/config/full_0.47_30.cfg simplessd/config/full_0.47_optimized_30.cfg
+	::: simplessd/config/1e-12.cfg simplessd/config/1e-12_optimized.cfg \
+		simplessd/config/5e-12.cfg simplessd/config/5e-12_optimized.cfg \
+		simplessd/config/1e-11.cfg simplessd/config/1e-11_optimized.cfg \
+		simplessd/config/5e-11.cfg simplessd/config/5e-11_optimized.cfg \
+		simplessd/config/1e-10.cfg simplessd/config/1e-10_optimized.cfg \
+		simplessd/config/3.32e-11.cfg simplessd/config/3.32e-11_optimized.cfg
+
