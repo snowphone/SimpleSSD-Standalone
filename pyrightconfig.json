@@ -1,0 +1,8 @@
+{
+	"verboseOutput": true,
+	"executionEnvironments": [
+		{
+			"root": "tools"
+		}
+	]
+}

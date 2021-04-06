@@ -8,10 +8,7 @@ from statistics import mean
 from sys import argv
 from typing import Dict, List, Tuple
 
-try:
-	from .Record import Record
-except:
-	from Record import Record
+from Record import Record
 
 
 def main(argv: List[str]):

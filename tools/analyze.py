@@ -8,10 +8,7 @@ from typing import IO, List, Union
 
 from tqdm import tqdm
 
-try:
-	from .Record import Record, saveCsv, saveJson
-except:
-	from Record import Record, saveCsv, saveJson
+from Record import Record, saveCsv, saveJson
 
 def main(argv: List[str]):
 	paths = []
