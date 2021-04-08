@@ -56,10 +56,10 @@ if (MSVC)
 else ()
   if (DEBUG_BUILD)
     set(CMAKE_CXX_FLAGS
-      "-O0 -g -rdynamic -pthread -Wall -Wextra -Werror ${CMAKE_CXX_FLAGS}")
+		"-O0 -g  -pthread -Wall -Wextra -Werror ${CMAKE_CXX_FLAGS} -Wno-unused-private-field")
   else ()
     set(CMAKE_CXX_FLAGS
-      "-O2 -rdynamic -pthread -Wall -Wextra -Werror ${CMAKE_CXX_FLAGS}")
+		"-march=native -O2  -pthread -Wall -Wextra -Werror ${CMAKE_CXX_FLAGS} -Wno-unused-private-field")
   endif ()
 
   if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
@@ -70,9 +70,10 @@ Please update your compiler.")
   endif ()
 endif ()
 
-set(CMAKE_CXX_COMPILER g++)
+set(CMAKE_CXX_COMPILER clang++)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_EXE_LINKER_FLAGS "-Wl,-export-dynamic")
 
 # Specify source files
 set(SRC_BIL

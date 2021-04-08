@@ -1,4 +1,4 @@
-folder=results/BER
+folder=results/hotcoldv1
 parallel --eta --tmuxpane \
 	time ./simplessd-standalone {1} {2} "$folder"/{1/.}/{2/.} \
 	::: config/alibaba_sampled.cfg \
