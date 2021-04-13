@@ -33,7 +33,8 @@ def normalize(paths: List[str]) -> List[Record]:
 
 		for key in [
 			"cum_bandwidth",
-			"ftl.page_mapping.gc.count",
+			"ftl.page_mapping.gc.reclaimed_blocks",
+			"ftl.page_mapping.valid_pages",
 		]:
 			baseValue, optValue = map(lambda x: x[key],
 			                          [baseLastStat, optLastStat])
@@ -79,7 +80,7 @@ def calculateAverages(records: List[Record]):
 
 def printRecords(records: List[Record]):
 	keys = [
-	    "Characteristics", "Trace", "SSD", "Latency", "Bandwidth", "GC count", "Write amplification"
+	    "Characteristics", "Trace", "SSD", "Latency", "Bandwidth", "Reclaimed blocks", "Valid pages", "Write amplification"
 	]
 	print(",".join(keys))
 	for rec in records:

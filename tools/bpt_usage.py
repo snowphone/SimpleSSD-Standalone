@@ -38,19 +38,20 @@ def simulate(tracePath: str, ber: float):
 
 	accessCnt = 0
 	insertCnt = 0
-	f = open(tracePath, "rt")
-	for line in f:
-		slba, nlba, op = parseLine(line)
+	for _ in range(50):
+		f = open(tracePath, "rt")
+		for line in f:
+			slba, nlba, op = parseLine(line)
 
-		lpn = slba // CONV_FACTOR
-		for _ in range(lpn, lpn + nlba // CONV_FACTOR):
-			if op[0] == 'R':
-				continue
+			lpn = slba // CONV_FACTOR
+			for _ in range(lpn, lpn + nlba // CONV_FACTOR):
+				if op[0] == 'R':
+					continue
 
-			accessCnt += 1
-			if prob(per):
-				insertCnt += 1
-	f.close()
+				accessCnt += 1
+				if prob(per):
+					insertCnt += 1
+		f.close()
 	return accessCnt, insertCnt
 
 
@@ -64,8 +65,6 @@ def main(args: argparse.Namespace):
 
 
 if __name__ == "__main__":
-	mp.freeze_support()
-
 	parser = argparse.ArgumentParser()
 	parser.add_argument("--traces", '-t', required=True, nargs='+')
 	parser.add_argument("--bers", '-b', type=float, required=True, nargs='+')

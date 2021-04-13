@@ -18,7 +18,7 @@ def getLineCount(path: str) -> int:
 	return int(subprocess.getoutput(f"wc -l {path}").split()[0])
 
 
-whitelist = ["ycsb", "alibaba"]
+whitelist = ["ycsb", "alibaba", "exchange", "systor17"]
 
 def sample(srcPath: str, dstPath: str, size=12 * GB, minLine=1000, acceleration=10):
 	size //= 512 # unit: byte -> LBA
