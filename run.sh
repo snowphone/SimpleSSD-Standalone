@@ -1,4 +1,4 @@
-folder=results/hotcold1.0
+folder=results/withoutHotcold
 parallel --eta --tmuxpane \
 	time ./simplessd-standalone {1} {2} "$folder"/{1/.}/{2/.} \
 	::: config/alibaba_sampled.cfg \
