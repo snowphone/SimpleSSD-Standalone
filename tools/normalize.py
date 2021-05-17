@@ -24,7 +24,7 @@ def normalize(paths: List[str]) -> List[Record]:
 	results = []
 
 	for base, opt in pairList:
-		rec = Record(base.name, base.traceConfig, base.ssdConfig, "normalized", 0, [{}])
+		rec = Record(base.name, base.traceConfig, opt.ssdConfig, "normalized", 0, [{}])
 
 		rec.latency = opt.latency / base.latency
 
@@ -73,18 +73,19 @@ def calculateAverages(records: List[Record]):
 			avg.statistics[0][key] = mean(values)
 
 		avgs.append(avg)
-	def k(x: Record):
-		return (x.name, x.traceConfig, float(x.ssdConfig))
-	return sorted(records, key=k) + sorted(avgs, key=k)
+	def sort_order(x: Record):
+		cfg = [float(i) for i in x.ssdConfig.split(',')]
+		return (x.traceConfig, cfg, x.name)
+	return sorted(records, key=sort_order) + sorted(avgs, key=sort_order)
 
 
 def printRecords(records: List[Record]):
 	keys = [
-	    "Characteristics", "Trace", "SSD", "Latency", "Bandwidth", "Reclaimed blocks", "Valid pages", "Write amplification"
+	    "Characteristics", "Trace", "BER|sigma", "Latency", "Bandwidth", "Reclaimed blocks", "Valid pages", "Write amplification"
 	]
 	print(",".join(keys))
 	for rec in records:
-		values = [rec.name, rec.traceConfig, rec.ssdConfig, rec.latency]
+		values = [rec.name, rec.traceConfig, rec.ssdConfig.replace(",", "|"), rec.latency]
 		for v in rec.statistics[0].values():
 			values.append(v)
 		print(",".join(
@@ -100,7 +101,7 @@ def makeThemPair(stats: List[Record]) -> List[Tuple[Record, Record]]:
 	  for jt in optimizedList
 	            if it.name == jt.name and \
                     it.traceConfig == jt.traceConfig and \
-                   it.ssdConfig == jt.ssdConfig]
+                   it.ssdConfig.split(',')[0] == jt.ssdConfig.split(',')[0]]
 
 
 def readRecords(paths: List[str]) -> List[Record]:

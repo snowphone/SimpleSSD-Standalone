@@ -1,4 +1,4 @@
-#!/usr/bin/env python3.8
+#!/usr/bin/env python3
 
 from glob import glob
 from pathlib import Path
@@ -22,7 +22,11 @@ def analyze(path: str):
 
 	p = Path(path)
 	scheme = "baseline" if p.parents[0].name.find("optimized") == -1 else "proposal"
-	ssdConfig = p.parents[0].name.replace("_optimized", "")
+	ssdConfigRegex = re.compile("_optimized(_harsh)?")
+	if p.parents[0].name.find("harsh") != -1:
+		ssdConfig = ssdConfigRegex.sub("", p.parents[0].name) + ",0.8"
+	else:
+		ssdConfig = ssdConfigRegex.sub("", p.parents[0].name) + ",0.5"
 	traceConfig = p.parents[1].name
 	name = p.parents[2].name
 	latency = getLatency(path)
